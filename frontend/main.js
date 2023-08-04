@@ -2,28 +2,41 @@ import "./style.css";
 
 const app = document.querySelector('#app');
 
+let file = null;
+let filename = null;
+let blobUrl = null;
+
 function init() {
   app.innerHTML = `
     <p>
       Select a picture to upload...
     </p>
     <input id="picture-input" type="file" accept="image/jpeg, image/png, image/jpg">
-    <p>
-      <img id="picture-preview" height="100px">
-    </p>
   `;
-
   document.addEventListener("change", displayPreview);
 }
 
 function displayPreview() {
-  const file = document.querySelector("#picture-input").files;
-  if (!file || !file[0] || !file[0].type.includes("image/")) {
+  const uploadedFile = document.querySelector("#picture-input").files[0];
+  if (!uploadedFile || !uploadedFile.type.includes("image/")) {
     return;
   }
 
+  file = uploadedFile;
+
+  if (!document.querySelector("#picture-preview")) {
+    const picturePreviewContainer = document.createElement("div");
+    picturePreviewContainer.classList.add("picture-container");
+    const picturePreview = document.createElement("img");
+    picturePreview.id = "picture-preview";
+    picturePreview.height = 100;
+    picturePreview.alt = "Picture preview"
+    picturePreviewContainer.append(picturePreview);
+    app.append(picturePreviewContainer);
+  }
+
   const picturePreview = document.querySelector("#picture-preview");
-  picturePreview.src = URL.createObjectURL(file[0]);
+  picturePreview.src = URL.createObjectURL(file);
 
   createUploadButtons();
 }
@@ -34,7 +47,7 @@ function createUploadButtons() {
     encryptButton.type = "button";
     encryptButton.value = "Encrypt Picture";
     encryptButton.id = "encrypt-button";
-    encryptButton.onclick = () => processPicture("http://localhost:8080/api/picture/encrypt");
+    encryptButton.onclick = () => processPicture("encrypt");
     app.append(encryptButton);
   }
 
@@ -43,19 +56,19 @@ function createUploadButtons() {
     decryptButton.type = "button";
     decryptButton.value = "Decrypt Picture";
     decryptButton.id = "decrypt-button";
-    decryptButton.onclick = () => processPicture("http://localhost:8080/api/picture/decrypt");
+    decryptButton.onclick = () => processPicture("decrypt");
     app.append(decryptButton);
   }
 }
 
-async function processPicture(url) {
-  const file = document.querySelector("#picture-input").files[0];
+async function processPicture(endpoint) {
+  filename = file.name.substring(0, file.name.lastIndexOf('.')) + "_" + endpoint + "ed";
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("filename", file.name);
 
-  const encryptedPicture = await fetchData(url, formData);
-  displayEncryptedPicture(encryptedPicture);
+  const encryptedPicture = await fetchData("http://localhost:8080/api/picture/" + endpoint, formData);
+  blobUrl = URL.createObjectURL(encryptedPicture);
+  displayEncryptedPicture();
 }
 
 async function fetchData(url, formData) {
@@ -72,18 +85,33 @@ async function fetchData(url, formData) {
   return encryptedPicture;
 }
 
-function displayEncryptedPicture(encryptedPicture) {
+function displayEncryptedPicture() {
   if (!document.querySelector("#encrypted-picture")) {
-    const encryptedPreviewContainer = document.createElement("p");
+    const encryptedPreviewContainer = document.createElement("div");
+    encryptedPreviewContainer.classList.add("picture-container");
     const encryptedPreview = document.createElement("img");
     encryptedPreview.id = "encrypted-picture";
     encryptedPreview.height = 100;
+    encryptedPreview.alt = "Encrypted picture";
     encryptedPreviewContainer.append(encryptedPreview);
     app.append(encryptedPreviewContainer);
   }
 
   const encryptedPreview = document.querySelector("#encrypted-picture");
-  encryptedPreview.src = URL.createObjectURL(encryptedPicture);
+  encryptedPreview.src = blobUrl;
+
+  if (!document.querySelector("#download-link")) {
+    const downloadLink = document.createElement("a");
+    downloadLink.textContent = "Download Picture";
+    downloadLink.id = "download-link";
+    app.append(downloadLink);
+  }
+
+  const downloadLink = document.querySelector("#download-link");
+  downloadLink.download = filename;
+  downloadLink.href = blobUrl;
+
+  app.append(downloadLink);
 }
 
 init();
