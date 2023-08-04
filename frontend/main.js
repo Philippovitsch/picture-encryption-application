@@ -13,17 +13,17 @@ function init() {
     </p>
   `;
 
-  document.addEventListener("change", displayPicture);
+  document.addEventListener("change", displayPreview);
 }
 
-function displayPicture() {
+function displayPreview() {
   const file = document.querySelector("#picture-input").files;
   if (!file || !file[0] || !file[0].type.includes("image/")) {
     return;
   }
 
-  const uploadedPicture = document.querySelector("#picture-preview");
-  uploadedPicture.src = URL.createObjectURL(file[0]);
+  const picturePreview = document.querySelector("#picture-preview");
+  picturePreview.src = URL.createObjectURL(file[0]);
 
   createUploadButtons();
 }
@@ -53,29 +53,37 @@ async function processPicture(url) {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("filename", file.name);
-  
-  const response = await fetchData(url);
-  console.log(`Status ${response.status} - ${response.message}`);
+
+  const encryptedPicture = await fetchData(url, formData);
+  displayEncryptedPicture(encryptedPicture);
 }
 
-async function fetchData(url) {
-  let message;
-  let status;
-
+async function fetchData(url, formData) {
+  let encryptedPicture = null;
   try {
-    const response = await fetch(url);
-    message = await response.text();
-    status = response.status;
+    const response = await fetch(url, {
+      method: "POST",
+      body: formData
+    });
+    encryptedPicture = await response.blob();
   } catch (error) {
-    message = "Error: " + error;
-    status = -1;
+    console.log("Error: " + error);
+  }
+  return encryptedPicture;
+}
+
+function displayEncryptedPicture(encryptedPicture) {
+  if (!document.querySelector("#encrypted-picture")) {
+    const encryptedPreviewContainer = document.createElement("p");
+    const encryptedPreview = document.createElement("img");
+    encryptedPreview.id = "encrypted-picture";
+    encryptedPreview.height = 100;
+    encryptedPreviewContainer.append(encryptedPreview);
+    app.append(encryptedPreviewContainer);
   }
 
-  return {
-    status: status,
-    message: message
-  };
-
+  const encryptedPreview = document.querySelector("#encrypted-picture");
+  encryptedPreview.src = URL.createObjectURL(encryptedPicture);
 }
 
 init();
