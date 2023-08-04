@@ -10,20 +10,25 @@ import org.springframework.web.multipart.MultipartFile;
 public class PictureEncryptionEndpointService {
 
     private final PictureConverter pictureConverter;
+    private final PixelSwapper pixelSwapper;
 
-    public PictureEncryptionEndpointService(PictureConverter pictureConverter) {
+    // TODO: User input to set a personal password
+    private final String password = "yourSecretPassword";
+
+    public PictureEncryptionEndpointService(PictureConverter pictureConverter, PixelSwapper pixelSwapper) {
         this.pictureConverter = pictureConverter;
+        this.pixelSwapper = pixelSwapper;
     }
 
-    public BufferedImage encryptPicture(MultipartFile file) throws IOException {
-        int[][] pixels = pictureConverter.readPixels(file);
-        int[][] encryptedPixels = pixels;
+    public BufferedImage encryptPicture(MultipartFile picture) throws IOException {
+        int[][] pixels = pictureConverter.readPixels(picture);
+        int[][] encryptedPixels = pixelSwapper.encryptPixels(pixels, password);
         return pictureConverter.writePixels(encryptedPixels);
     }
 
-    public BufferedImage decryptPicture(MultipartFile file) throws IOException {
-        int[][] pixels = pictureConverter.readPixels(file);
-        int[][] decryptedPixels = pixels;
+    public BufferedImage decryptPicture(MultipartFile picture) throws IOException {
+        int[][] pixels = pictureConverter.readPixels(picture);
+        int[][] decryptedPixels = pixelSwapper.decryptPixels(pixels, password);
         return pictureConverter.writePixels(decryptedPixels);
     }
 
