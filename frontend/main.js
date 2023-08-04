@@ -7,53 +7,54 @@ function init() {
     <p>
       Select a picture to upload...
     </p>
-    <input id="input" type="file" accept="image/jpeg, image/png, image/jpg">
+    <input id="picture-input" type="file" accept="image/jpeg, image/png, image/jpg">
     <p>
-      <img id="uploaded-picture" height="100px">
+      <img id="picture-preview" height="100px">
     </p>
   `;
 
-  document.addEventListener("change", (event) => displayPicture(event));
+  document.addEventListener("change", displayPicture);
 }
 
-function displayPicture(event) {
-  if (!event.target.files || !event.target.files[0] || !event.target.files[0].type.includes("image/")) {
+function displayPicture() {
+  const file = document.querySelector("#picture-input").files;
+  if (!file || !file[0] || !file[0].type.includes("image/")) {
     return;
   }
 
-  const uploadedPicture = document.querySelector("#uploaded-picture");
-  uploadedPicture.src = URL.createObjectURL(event.target.files[0]);
+  const uploadedPicture = document.querySelector("#picture-preview");
+  uploadedPicture.src = URL.createObjectURL(file[0]);
 
   createUploadButtons();
 }
 
 function createUploadButtons() {
-  if (!document.querySelector("#decrypt-picture")) {
+  if (!document.querySelector("#decrypt-button")) {
     const encryptButton = document.createElement("input");
     encryptButton.type = "button";
     encryptButton.value = "Encrypt Picture";
-    encryptButton.id = "encrypt-picture";
-    encryptButton.onclick = encryptPicture;
+    encryptButton.id = "encrypt-button";
+    encryptButton.onclick = () => processPicture("http://localhost:8080/api/picture/encrypt");
     app.append(encryptButton);
   }
 
-  if (!document.querySelector("#decrypt-picture")) {
+  if (!document.querySelector("#decrypt-button")) {
     const decryptButton = document.createElement("input");
     decryptButton.type = "button";
     decryptButton.value = "Decrypt Picture";
-    decryptButton.id = "decrypt-picture"
-    decryptButton.onclick = decryptPicture;
+    decryptButton.id = "decrypt-button";
+    decryptButton.onclick = () => processPicture("http://localhost:8080/api/picture/decrypt");
     app.append(decryptButton);
   }
 }
 
-async function encryptPicture() {
-  const response = await fetchData("http://localhost:8080/api/picture/encrypt");
-  console.log(`Status ${response.status} - ${response.message}`);
-}
-
-async function decryptPicture() {
-  const response = await fetchData("http://localhost:8080/api/picture/decrypt");
+async function processPicture(url) {
+  const file = document.querySelector("#picture-input").files[0];
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("filename", file.name);
+  
+  const response = await fetchData(url);
   console.log(`Status ${response.status} - ${response.message}`);
 }
 
@@ -73,7 +74,7 @@ async function fetchData(url) {
   return {
     status: status,
     message: message
-  }
+  };
 
 }
 
