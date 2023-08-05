@@ -9,7 +9,7 @@ let blobUrl = null;
 function init() {
   app.innerHTML = `
     <p>
-      Select a picture to upload...
+      <i>Select a picture to upload...</i>
     </p>
     <input id="picture-input" type="file" accept="image/jpeg, image/png, image/jpg">
   `;
@@ -26,7 +26,7 @@ function displayPreview() {
 
   if (!document.querySelector("#picture-preview")) {
     const picturePreviewContainer = document.createElement("div");
-    picturePreviewContainer.classList.add("picture-container");
+    picturePreviewContainer.classList.add("container");
     const picturePreview = document.createElement("img");
     picturePreview.id = "picture-preview";
     picturePreview.height = 100;
@@ -42,6 +42,18 @@ function displayPreview() {
 }
 
 function createUploadButtons() {
+  if (!document.querySelector("#password-input")) {
+    const passwordInputContainer = document.createElement("div");
+    passwordInputContainer.innerHTML = "<i>Choose an encryption password (optional):</i><br>";
+    passwordInputContainer.classList.add("container");
+    const passwordInput = document.createElement("input");
+    passwordInput.type = "password";
+    passwordInput.placeholder = "Password";
+    passwordInput.id = "password-input";
+    passwordInputContainer.append(passwordInput);
+    app.append(passwordInputContainer);  
+  }
+
   if (!document.querySelector("#decrypt-button")) {
     const encryptButton = document.createElement("input");
     encryptButton.type = "button";
@@ -63,8 +75,10 @@ function createUploadButtons() {
 
 async function processPicture(endpoint) {
   filename = file.name.substring(0, file.name.lastIndexOf('.')) + "_" + endpoint + "ed";
+  const password = document.querySelector("#password-input").value;
   const formData = new FormData();
   formData.append("file", file);
+  formData.append("password", password);
 
   const encryptedPicture = await fetchData("http://localhost:8080/api/picture/" + endpoint, formData);
   blobUrl = URL.createObjectURL(encryptedPicture);
@@ -88,7 +102,7 @@ async function fetchData(url, formData) {
 function displayEncryptedPicture() {
   if (!document.querySelector("#encrypted-picture")) {
     const encryptedPreviewContainer = document.createElement("div");
-    encryptedPreviewContainer.classList.add("picture-container");
+    encryptedPreviewContainer.classList.add("container");
     const encryptedPreview = document.createElement("img");
     encryptedPreview.id = "encrypted-picture";
     encryptedPreview.height = 100;

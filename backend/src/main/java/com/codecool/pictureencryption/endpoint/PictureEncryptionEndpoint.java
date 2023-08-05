@@ -24,13 +24,19 @@ public class PictureEncryptionEndpoint {
     }
 
     @PostMapping(path = "/encrypt", produces = "image/png")
-    public BufferedImage encryptPicture(@RequestParam("file") MultipartFile file) throws IOException {
-        return pictureEncryptionEndpointService.encryptPicture(file);
+    public BufferedImage encryptPicture(
+        @RequestParam("file") MultipartFile file,
+        @RequestParam("password") String password
+    ) throws IOException {
+        return pictureEncryptionEndpointService.encryptPicture(file, password);
     }
 
     @PostMapping(path = "/decrypt", produces = "image/png")
-    public BufferedImage decryptPicture(@RequestParam("file") MultipartFile file) throws IOException {
-        return pictureEncryptionEndpointService.decryptPicture(file);
+    public BufferedImage decryptPicture(
+        @RequestParam("file") MultipartFile file,
+        @RequestParam("password") String password
+    ) throws IOException {
+        return pictureEncryptionEndpointService.decryptPicture(file, password);
     }
 
 }
