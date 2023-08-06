@@ -4,7 +4,8 @@ const app = document.querySelector('#app');
 
 let file = null;
 let filename = null;
-let blobUrl = null;
+let previewBlobUrl = null;
+let encryptedBlobUrl = null;
 
 function init() {
   app.innerHTML = `
@@ -23,6 +24,7 @@ function displayPreview() {
   }
 
   file = uploadedFile;
+  previewBlobUrl = URL.createObjectURL(file);
 
   if (!document.querySelector("#picture-preview")) {
     const picturePreviewContainer = document.createElement("div");
@@ -30,13 +32,15 @@ function displayPreview() {
     const picturePreview = document.createElement("img");
     picturePreview.id = "picture-preview";
     picturePreview.height = 100;
-    picturePreview.alt = "Picture preview"
+    picturePreview.alt = "Picture preview";
+    picturePreview.classList.add("pointer");
+    picturePreview.onclick = () => openModal(previewBlobUrl);
     picturePreviewContainer.append(picturePreview);
     app.append(picturePreviewContainer);
   }
 
   const picturePreview = document.querySelector("#picture-preview");
-  picturePreview.src = URL.createObjectURL(file);
+  picturePreview.src = previewBlobUrl;
 
   createUploadButtons();
 }
@@ -81,7 +85,7 @@ async function processPicture(endpoint) {
   formData.append("password", password);
 
   const encryptedPicture = await fetchData("http://localhost:8080/api/picture/" + endpoint, formData);
-  blobUrl = URL.createObjectURL(encryptedPicture);
+  encryptedBlobUrl = URL.createObjectURL(encryptedPicture);
   displayEncryptedPicture();
 }
 
@@ -107,12 +111,14 @@ function displayEncryptedPicture() {
     encryptedPreview.id = "encrypted-picture";
     encryptedPreview.height = 100;
     encryptedPreview.alt = "Encrypted picture";
+    encryptedPreview.classList.add("pointer");
+    encryptedPreview.onclick = () => openModal(encryptedBlobUrl);
     encryptedPreviewContainer.append(encryptedPreview);
     app.append(encryptedPreviewContainer);
   }
 
   const encryptedPreview = document.querySelector("#encrypted-picture");
-  encryptedPreview.src = blobUrl;
+  encryptedPreview.src = encryptedBlobUrl;
 
   if (!document.querySelector("#download-link")) {
     const downloadLink = document.createElement("a");
@@ -123,9 +129,43 @@ function displayEncryptedPicture() {
 
   const downloadLink = document.querySelector("#download-link");
   downloadLink.download = filename;
-  downloadLink.href = blobUrl;
+  downloadLink.href = encryptedBlobUrl;
 
   app.append(downloadLink);
+}
+
+function openModal(blobUrl) {
+  const modalWindow = document.createElement("div");
+  modalWindow.id = "modal-window";
+  modalWindow.classList.add("modal");
+  modalWindow.innerHTML = `
+    <div class="modal-content">
+      <span id="modal-close-button" class="modal-close">&#x2715;</span>
+      <img src="${blobUrl}" alt="Modal picture" height="600px">
+    </div>
+  `;
+  app.append(modalWindow);
+
+  document.addEventListener("keydown", closeModal);
+  document.addEventListener("click", closeModal);
+}
+
+function closeModal(event) {
+  const modalWindow = document.querySelector("#modal-window");
+  const modalCloseButton = document.querySelector("#modal-close-button");
+
+  if (event.type === "click" && event.target !== modalWindow && event.target !== modalCloseButton) {
+    return;
+  }
+
+  if (event.type === "keydown" && event.key !== "Escape") {
+    return;
+  }
+
+  modalWindow.remove();
+
+  document.removeEventListener("keydown", closeModal);
+  document.removeEventListener("click", closeModal);
 }
 
 init();
