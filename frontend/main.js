@@ -14,7 +14,9 @@ function init() {
     </p>
     <input id="picture-input" type="file" accept="image/jpeg, image/png, image/jpg">
   `;
-  document.addEventListener("change", displayPreview);
+
+  const pictureInput = document.querySelector("#picture-input");
+  pictureInput.addEventListener("change", displayPreview);
 }
 
 function displayPreview() {
@@ -61,7 +63,7 @@ function createUploadButtons() {
   if (!document.querySelector("#decrypt-button")) {
     const encryptButton = document.createElement("input");
     encryptButton.type = "button";
-    encryptButton.value = "Encrypt Picture";
+    encryptButton.value = "Encrypt picture";
     encryptButton.id = "encrypt-button";
     encryptButton.onclick = () => processPicture("encrypt");
     app.append(encryptButton);
@@ -70,7 +72,7 @@ function createUploadButtons() {
   if (!document.querySelector("#decrypt-button")) {
     const decryptButton = document.createElement("input");
     decryptButton.type = "button";
-    decryptButton.value = "Decrypt Picture";
+    decryptButton.value = "Decrypt picture";
     decryptButton.id = "decrypt-button";
     decryptButton.onclick = () => processPicture("decrypt");
     app.append(decryptButton);
