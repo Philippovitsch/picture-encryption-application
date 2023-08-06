@@ -2,8 +2,12 @@ package com.codecool.pictureencryption.endpoint;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.List;
 
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,7 +27,17 @@ public class PictureEncryptionEndpoint {
         this.pictureEncryptionEndpointService = pictureEncryptionEndpointService;
     }
 
-    @PostMapping(path = "/encrypt", produces = "image/png")
+    @GetMapping("/sample-pictures")
+    public List<String> getSamplePictures() {
+        return pictureEncryptionEndpointService.getSamplePictures();
+    }
+
+    @GetMapping(path = "/sample-pictures/{filename}", produces = MediaType.IMAGE_JPEG_VALUE)
+    public byte[] getSamplePictureByFilename(@PathVariable("filename") String filename) throws IOException {
+        return pictureEncryptionEndpointService.getSamplePictureByFilename(filename);
+    }
+
+    @PostMapping(path = "/encrypt", produces = MediaType.IMAGE_PNG_VALUE)
     public BufferedImage encryptPicture(
         @RequestParam("file") MultipartFile file,
         @RequestParam("password") String password
@@ -31,7 +45,7 @@ public class PictureEncryptionEndpoint {
         return pictureEncryptionEndpointService.encryptPicture(file, password);
     }
 
-    @PostMapping(path = "/decrypt", produces = "image/png")
+    @PostMapping(path = "/decrypt", produces = MediaType.IMAGE_PNG_VALUE)
     public BufferedImage decryptPicture(
         @RequestParam("file") MultipartFile file,
         @RequestParam("password") String password

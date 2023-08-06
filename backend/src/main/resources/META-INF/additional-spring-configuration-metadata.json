@@ -1,0 +1,10 @@
+{"properties": [
+    {
+        "name": "sample.pictures",
+        "type": "java.lang.String",
+    },
+    {
+        "name": "sample.pictures.location",
+        "type": "java.lang.String",
+    }
+]}
