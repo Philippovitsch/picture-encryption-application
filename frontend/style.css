@@ -1,6 +1,6 @@
 body {
   font-family: Arial, Helvetica, sans-serif;
-  background-color: aliceblue;
+  background-color: #f0f8ff;
   margin: 20px;
 }
 
@@ -8,6 +8,23 @@ footer {
   position: fixed;
   left: 20px;
   bottom: 20px;
+}
+
+.link {
+  cursor: pointer;
+  color: #0000FF;
+  text-decoration: underline;
+}
+
+.sample-pictures {
+  margin: 20px 0 20px 0;
+  padding: 10px;
+  display: flex;
+  gap: 10px;
+  width: max-content;
+  background-color: #d7ecff;
+  border: 1px solid #000000;
+  border-radius: 10px;
 }
 
 .container {

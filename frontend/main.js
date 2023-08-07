@@ -10,13 +10,62 @@ let encryptedBlobUrl = null;
 function init() {
   app.innerHTML = `
     <p>
-      <i>Select a picture to upload...</i>
+      <i>Select a picture to upload or choose a <span id="sample-pictures-button" class="link">sample</span>...</i>
     </p>
     <input id="picture-input" type="file" accept="image/jpeg, image/png, image/jpg">
   `;
 
+  const samplePicturesButton = document.querySelector("#sample-pictures-button");
+  samplePicturesButton.addEventListener("click", displaySamplePictures);
+
   const pictureInput = document.querySelector("#picture-input");
   pictureInput.addEventListener("change", displayPreview);
+}
+
+async function displaySamplePictures() {
+  const pictureInput = document.querySelector("#picture-input");
+  let samplePicturesContainer = document.querySelector("#sample-pictures-container");
+
+  if (samplePicturesContainer) {
+    samplePicturesContainer.remove();
+    return;
+  }
+
+  samplePicturesContainer = document.createElement("div");
+  samplePicturesContainer.id = "sample-pictures-container";
+  samplePicturesContainer.classList.add("sample-pictures");
+  app.insertBefore(samplePicturesContainer, pictureInput);
+
+  const samplePictures = await fetchSamplePictures();
+  for (const samplePictureName of samplePictures) {
+    const picture = await fetchPicture(`http://localhost:8080/api/picture/sample-pictures/${samplePictureName}`, "GET");
+    const pictureBlobUrl = URL.createObjectURL(picture);
+
+    const samplePicture = document.createElement("img");
+    samplePicture.id = samplePictureName;
+    samplePicture.height = 100;
+    samplePicture.alt = samplePictureName;
+    samplePicture.src = pictureBlobUrl;
+    samplePicture.classList.add("pointer");
+    samplePicture.onclick = loadSamplePicture;
+    samplePicturesContainer.append(samplePicture);
+  }
+}
+
+async function fetchSamplePictures() {
+  const response = await fetch("http://localhost:8080/api/picture/sample-pictures");
+  return (response.ok) ? response.json() : [];
+}
+
+async function loadSamplePicture(event) {
+  const file = await fetch(event.target.src).then(response => response.blob());
+  const filename = event.target.id;
+  const dataTransfer = new DataTransfer();
+  dataTransfer.items.add(new File([file], filename, {type: file.type}));
+
+  const pictureInput = document.querySelector("#picture-input");
+  pictureInput.files = dataTransfer.files;
+  displayPreview();
 }
 
 function displayPreview() {
@@ -86,23 +135,23 @@ async function processPicture(endpoint) {
   formData.append("file", file);
   formData.append("password", password);
 
-  const encryptedPicture = await fetchData("http://localhost:8080/api/picture/" + endpoint, formData);
+  const encryptedPicture = await fetchPicture("http://localhost:8080/api/picture/" + endpoint, "POST", formData);
   encryptedBlobUrl = URL.createObjectURL(encryptedPicture);
   displayEncryptedPicture();
 }
 
-async function fetchData(url, formData) {
-  let encryptedPicture = null;
+async function fetchPicture(url, method, formData) {
+  let picture = null;
   try {
     const response = await fetch(url, {
-      method: "POST",
+      method: method,
       body: formData
     });
-    encryptedPicture = await response.blob();
+    picture = await response.blob();
   } catch (error) {
     console.log("Error: " + error);
   }
-  return encryptedPicture;
+  return picture;
 }
 
 function displayEncryptedPicture() {
@@ -126,6 +175,7 @@ function displayEncryptedPicture() {
     const downloadLink = document.createElement("a");
     downloadLink.textContent = "Download Picture";
     downloadLink.id = "download-link";
+    downloadLink.classList.add("link")
     app.append(downloadLink);
   }
 
